@@ -23,6 +23,7 @@ public class Main {
             case "-" ->  String.valueOf(operand1 - operand2);
             case "*" ->  String.valueOf(operand1 * operand2);
             case "/" ->  String.valueOf(operand1 / operand2);
+            default -> "Пример не решен!";
         };
         if (parts[3].equals(NumericSystem.ROMAN.name())) {
             result = arabicToRoman(result);
@@ -50,7 +51,7 @@ public class Main {
         var langFlag = "";
         // Парсинг операндов
         if(isRoman(input[0])){
-            var temp = romanToByte(new String[]{input[0], input[2]});
+            var temp = romanToByteV2(new String[]{input[0], input[2]});
             num1 = temp[0];
             num2 = temp[1];
             langFlag = NumericSystem.ROMAN.name();
@@ -81,37 +82,52 @@ public class Main {
         byte[] result = new byte[args.length];
         try{
             for (int i = 0; i < args.length; i++) {
-                result[i] = RomanNumbs.valueOf(args[i].toUpperCase()).getByte();
+                result[i] = RomanNumbs.valueOf(args[i].toUpperCase()).arabic;
             }
         } catch (Exception e){
             throw new RuntimeException("Введены некорректные римские числа!");
         }
         return result;
     }
+    private static byte[] romanToByteV2(String[] args){
+        byte[] result = new byte[args.length];
+        try{
+            for (int i = 0; i < args.length; i++) {
+                byte sum = 0;
+                byte prev = 0;
+                for(int j = args[i].length() - 1; j >= 0; j--){
+                    byte curr = RomanNumbs.valueOf(
+                            Character.valueOf(args[i].toUpperCase().charAt(j)).toString()
+                    ).arabic;
+                    sum = (byte) ((curr < prev) ?  (sum - curr) : (sum + curr));
+                    prev = curr;
+                }
+                result[i] = sum;
+            }
+        } catch (Exception e){
+            throw new RuntimeException("Введены некорректные римские числа!");
+        }
+        return result;
+    }
+
     private static String arabicToRoman(String arab) {
         byte input = Byte.parseByte(arab);
         StringBuilder result = new StringBuilder();
-        for (Numbs numbs: Numbs.values()) {
+        for (RomanNumbs numbs: RomanNumbs.values()) {
             while (input >= numbs.arabic){
-                result.append(numbs.roman);
+                result.append(numbs.name());
                 input -= numbs.arabic;
             }
         }
         return result.toString();
     }
-    private enum Numbs {
-        HUNDRED((byte) 100,"C"),
-        TEN((byte) 10,"X"),
-        NINE((byte) 9,"IX"),
-        FIVE((byte) 5,"V"),
-        FOUR((byte) 4,"IV"),
-        ONE((byte) 1,"I");
-
+    private enum RomanNumbs {
+        C((byte) 100), XC((byte) 90), L((byte) 50), XL((byte) 40),
+        X((byte) 10), IX((byte) 9), VIII((byte) 8), VII((byte) 7), VI((byte) 6),
+        V((byte) 5), IV((byte) 4), III((byte) 3), II((byte) 2), I((byte) 1);
         private final byte arabic;
-        private final String roman;
-        Numbs(byte arabic, String roman) {
+        RomanNumbs(byte arabic) {
             this.arabic = arabic;
-            this.roman = roman;
         }
     }
 }
